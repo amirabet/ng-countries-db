@@ -20,7 +20,7 @@
     </div>
 </div>
 <div class="row mt-3">
-    <div *ngIf="subregions"
+    <div *ngIf="subregions.length > 0"
         class="col text-center">
         <button class="btn btn-sm mx-2"
             [ngClass]="!selectedSubregion ? 'btn-secondary' : 'btn-outline-secondary'"
