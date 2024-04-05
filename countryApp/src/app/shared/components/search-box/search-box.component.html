@@ -1,6 +1,14 @@
 <input 
     type="text"
     [placeholder]=placeholder
+    [value]="initialValue"
     class="form-control"
-    (keyup.enter)="emitValue()"
+    (keyup)="onKeyPress(inputSearch.value)" 
     #inputSearch>
+
+
+
+    <!-- 
+        Event on Press Enter Key (unused in favour of onKeyPress)
+        (keyup.enter)="onPressEnter()" 
+    -->

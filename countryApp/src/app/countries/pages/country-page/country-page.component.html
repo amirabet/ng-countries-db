@@ -1,14 +1,15 @@
 <ng-template #loading>
     <h2>Single Country</h2>
     <hr>
-    <div class="alert alert-info">
-        Loading country...
+    <div class="alert alert-info  d-flex align-items-center">
+        <div class="spinner-border" role="status"></div>
+        <div class="px-4"> Loading country...</div>
     </div>
 </ng-template>
 
 
 
-<div *ngIf="country; else loading">
+<div *ngIf="country else loading">
     <div class="row">
         <div class="col-12">
             <h2>{{ country.name.common }} <span class="float-end">{{ country.flag }}</span></h2>
@@ -48,7 +49,7 @@
         </div>
 
         <div class="col-3">
-            <img [src]="country.coatOfArms.svg" class="img-thumbnail"> 
+            <img [src]="country.coatOfArms.png" class="img-thumbnail"> 
         </div>
     </div>
 

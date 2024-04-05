@@ -1,8 +1,19 @@
-<div *ngIf="countries.length === 0 else table" class="alert alert-warning text-center">
-    No countries found.
-</div>
+<ng-template [ngIf]="!hasSearchStarted && countries.length === 0">
+    <div class="alert alert-info d-flex align-items-center">
+        <div><i class="bi bi-info-circle"></i> </div>
+        <div class="px-4"> Perform a search to find Countries.</div>
+    </div>
+</ng-template>
 
-<ng-template #table>
+<ng-template [ngIf]="hasSearchStarted && countries.length === 0">
+    <div class="alert alert-warning d-flex align-items-center">
+        <div><i class="bi bi-x-octagon"></i> </div>
+        <div class="px-4"> No countries found.</div>
+    </div>
+</ng-template>
+
+
+<ng-template [ngIf]="countries.length > 0">
     <table class="table table-hover">
         <thead>
             <tr>

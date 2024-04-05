@@ -1,19 +1,52 @@
-<h2>By Region</h2>
+<h2>Search by Region</h2>
 <hr>
 
 <div class="row">
-    <div class="col">
-        <!-- SearchBox -->
+    <div class="col text-center">
+        <!-- Botonera de Regions -->
+        <button *ngFor="let region of regions"
+            class="btn mx-2"
+            [ngClass]="selectedRegion === region ? 'btn-primary' : 'btn-outline-primary'"
+            [disabled]="this.isLoading"
+            (click)="searchByRegion(region)"> 
+                {{ region }}
+        </button>
+        <!-- SearchBox 
         <shared-search-box 
-            placeholder="Type to search country"
-            (onValue) = "searchByRegion($event)">
-        </shared-search-box>
+            placeholder="Type to search country by region"
+            (onValue) = "searchByRegion($event)"
+            (onDebounce)="searchByRegion($event)">
+        </shared-search-box>-->
+    </div>
+</div>
+<div class="row mt-3">
+    <div *ngIf="subregions"
+        class="col text-center">
+        <button class="btn btn-sm mx-2"
+            [ngClass]="!selectedSubregion ? 'btn-secondary' : 'btn-outline-secondary'"
+            [disabled]="this.isLoading"
+            (click)="searchByRegion(selectedRegion!)"> 
+                All
+        </button>
+        <!-- Botonera de Regions -->
+        <button *ngFor="let subregion of subregions"
+            class="btn btn-sm mx-2"
+            [ngClass]="selectedSubregion === subregion ? 'btn-secondary' : 'btn-outline-secondary'"
+            [disabled]="this.isLoading"
+            (click)="searchBySubregion(subregion)"> 
+                {{ subregion }}
+        </button>
     </div>
 </div>
 
 <div class="row">
     <div class="col">
         <hr>
-        <countries-table [countries]="countries"></countries-table>
+        <shared-loading-spinner *ngIf="this.isLoading"></shared-loading-spinner>
+        <countries-table 
+            [countries]="countries"
+            [hasSearchStarted]="selectedRegion !== undefined"
+            >
+        </countries-table>
     </div>
 </div>

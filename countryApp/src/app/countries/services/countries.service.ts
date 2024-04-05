@@ -1,9 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
-import { Observable, catchError, map, of } from 'rxjs';
+import { Observable, catchError, delay, map, of, tap } from 'rxjs';
 
-import { Country } from '../interfaces/country';
+import { Country } from '../interfaces/country.interface';
+import { CacheStore } from '../interfaces/cache-store.interface';
+import { Region, Subregion } from '../interfaces/regions.interface';
 
 @Injectable({
     providedIn: 'root'
@@ -11,9 +13,19 @@ import { Country } from '../interfaces/country';
 
 
 export class CountriesService {
-    private _apiUrl: string =  "https://restcountries.com/v3.1";
 
-    constructor( private http: HttpClient){ }
+    private _apiUrl: string =  "https://restcountries.com/v3.1";
+    private _localStorageKey: string =  "countriesCacheStore";
+
+    public cacheStore: CacheStore = {
+        byCapital: { term: '', countries: [] },
+        byCountries: { term: '', countries: [] },
+        byRegion: { region: undefined, subregion: undefined, countries: [] }
+    }
+
+    constructor( private http: HttpClient){
+        this.loadFromlocalStorage();
+    }
 
     /*
     *
@@ -24,12 +36,36 @@ export class CountriesService {
     * Aquí usaremos el catchError para controlar erroes, que devuelve a su vez un nuevo Observable (!!)
     * 
     */
+
+    private saveTolocalStorage(){
+        localStorage.setItem( this._localStorageKey, JSON.stringify( this.cacheStore ));
+    }
+
+    private loadFromlocalStorage(){
+        if(!localStorage.getItem( this._localStorageKey ))
+            return;
+
+        this.cacheStore = JSON.parse( localStorage.getItem( this._localStorageKey)! );
+    }
+
+    /*
+    * Unificamos las API calls en un solo método unificado
+    */
+    private getCountriesRequest( url: string ): Observable<Country[]> {
+        return this.http.get<Country[]>( url ).
+        pipe(
+            catchError( error => of([]) ),
+                delay(200)
+        );
+    }
+
     public SearchByCapital( term: string ): Observable<Country[]> {
         const url = `${ this._apiUrl }/capital/${ term }`;
         return this.http.get<Country[]>( url ).
         pipe(
-            // Métodos map y tap para trnasformar la resupesta recibida
-            //tap( countries => console.log('paso por Observable.pipe().tap =>', countries)),
+            // Métodos map y tap para trabajar con la resupesta recibida
+            tap( countries => this.cacheStore.byCapital = { term, countries }),
+            tap( () => this.saveTolocalStorage() ),
             //map( countries => console.log('paso por Observable.pipe().map =>', countries))
             //
             // Con catchError disponemos del error y podemos devolverlo (será un Observable)
@@ -37,27 +73,42 @@ export class CountriesService {
             
             catchError( error => {
                 console.log(error);
-                return of([])                 
-            })
+                return of([])
+            }),
+            delay(200)
             
             // Forma abreviada sin return del error
             //catchError( error => of([]) )
+
+            // Llamar al método unificado
+            //return this.getCountriesRequest(url); 
         );
     }
 
     public SearchCountry( term: string ): Observable<Country[]> {
         const url = `${ this._apiUrl }/name/${ term }`;
-        return this.http.get<Country[]>( url ).
+        return this.getCountriesRequest(url).
         pipe(
-            catchError( error => of([]) )
+            tap( countries => this.cacheStore.byCountries = { term, countries }),
+            tap( () => this.saveTolocalStorage() )
         );
     }
 
-    public SearchByRegion( region: string ): Observable<Country[]> {
+    public SearchByRegion( region: Region ): Observable<Country[]> {
         const url = `${ this._apiUrl }/region/${ region }`;
-        return this.http.get<Country[]>( url ).
+        return this.getCountriesRequest(url).
         pipe(
-            catchError( error => of([]) )
+            tap( countries => this.cacheStore.byRegion = { region, subregion:undefined, countries }),
+            tap( () => this.saveTolocalStorage() )
+        );
+    }
+
+    public SearchBySubregion( subregion: Subregion ): Observable<Country[]> {
+        const url = `${ this._apiUrl }/subregion/${ subregion }`;
+        return this.getCountriesRequest(url).
+        pipe(
+            tap( countries => this.cacheStore.byRegion = { region: this.cacheStore.byRegion.region, subregion: subregion, countries }),
+            tap( () => this.saveTolocalStorage() )
         );
     }
 
